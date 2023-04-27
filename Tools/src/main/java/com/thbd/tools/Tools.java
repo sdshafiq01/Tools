@@ -104,6 +104,7 @@ public class Tools {
     public static String getAndroidVersion() {
         return Build.VERSION.RELEASE + "";
     }
+
     public static int getVersionCode( Context ctx) {
         try {
             PackageManager manager = ctx.getPackageManager();
@@ -293,7 +294,6 @@ public class Tools {
             progressDialog.setCanceledOnTouchOutside(false);
             progressDialog.setCancelable(false);
         }
-
 
         public  void cancel() {
             // Log.e("TAG", "Cancel: progress" );

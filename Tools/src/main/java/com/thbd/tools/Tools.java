@@ -4,7 +4,6 @@ import static com.bumptech.glide.load.resource.drawable.DrawableTransitionOption
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -19,11 +18,15 @@ import android.provider.Settings;
 import android.text.Html;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.util.Log;
 import android.util.Patterns;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.ScaleAnimation;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.URLUtil;
 import android.widget.ImageView;
@@ -43,8 +46,11 @@ import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 public class Tools {
 
@@ -62,8 +68,7 @@ public class Tools {
 
     }
 
-
-    public static void setSystemBarColor(String color , Activity act) {
+    public static void setSystemBarColor(String color, Activity act) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Window window = act.getWindow();
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -105,7 +110,7 @@ public class Tools {
         return Build.VERSION.RELEASE + "";
     }
 
-    public static int getVersionCode( Context ctx) {
+    public static int getVersionCode(Context ctx) {
         try {
             PackageManager manager = ctx.getPackageManager();
             PackageInfo info = manager.getPackageInfo(ctx.getPackageName(), 0);
@@ -115,7 +120,7 @@ public class Tools {
         }
     }
 
-    public static String getVersionName( Context ctx) {
+    public static String getVersionName(Context ctx) {
         try {
             PackageManager manager = ctx.getPackageManager();
             PackageInfo info = manager.getPackageInfo(ctx.getPackageName(), 0);
@@ -125,7 +130,7 @@ public class Tools {
         }
     }
 
-    public static String getVersionNamePlain( Context ctx) {
+    public static String getVersionNamePlain(Context ctx) {
         try {
             PackageManager manager = ctx.getPackageManager();
             PackageInfo info = manager.getPackageInfo(ctx.getPackageName(), 0);
@@ -136,7 +141,7 @@ public class Tools {
     }
 
     @SuppressLint("HardwareIds")
-    public static String getDeviceID( Context ctx ) {
+    public static String getDeviceID(Context ctx) {
         String deviceID = Build.SERIAL;
         if (deviceID == null || deviceID.trim().isEmpty() || deviceID.equalsIgnoreCase("unknown") || deviceID.equals("0")) {
             try {
@@ -152,8 +157,7 @@ public class Tools {
         return newFormat.format(new Date(dateTime));
     }
 
-
-    public  void displayImage(Context ctx, ImageView imgs, String url) {
+    public static void displayImage(Context ctx, ImageView imgs, String url) {
         try {
             Glide.with(ctx.getApplicationContext()).load(url)
                     .transition(withCrossFade())
@@ -163,7 +167,7 @@ public class Tools {
         }
     }
 
-    public  void displayImageCircle(Context ctx,ImageView img, Bitmap bmp) {
+    public static void displayImageCircle(Context ctx, ImageView img, Bitmap bmp) {
         try {
             Glide.with(ctx.getApplicationContext()).load(bmp)
                     .transition(withCrossFade())
@@ -174,7 +178,7 @@ public class Tools {
         }
     }
 
-    public  void displayImageCircle(Context ctx,ImageView img, String url) {
+    public static void displayImageCircle(Context ctx, ImageView img, String url) {
         try {
             Glide.with(ctx.getApplicationContext()).load(url)
                     .transition(withCrossFade())
@@ -185,7 +189,7 @@ public class Tools {
         }
     }
 
-    public  void displayImageCircle(Context ctx,ImageView img, String url, float thumb) {
+    public static void displayImageCircle(Context ctx, ImageView img, String url, float thumb) {
         try {
             Glide.with(ctx.getApplicationContext()).load(url)
                     .transition(withCrossFade())
@@ -197,7 +201,7 @@ public class Tools {
         }
     }
 
-    public  void displayImageThumb( Context ctx,ImageView img, String url, float thumb) {
+    public static void displayImageThumb(Context ctx, ImageView img, String url, float thumb) {
         try {
             Glide.with(ctx.getApplicationContext()).load(url)
                     .transition(withCrossFade())
@@ -256,7 +260,7 @@ public class Tools {
         }
     }
 
-    public static void hideKeyboard( Activity act) {
+    public static void hideKeyboard(Activity act) {
         InputMethodManager imm = (InputMethodManager) act.getSystemService(Activity.INPUT_METHOD_SERVICE);
         View view = act.getCurrentFocus();
         //If no view currently has focus, create a new one, just so we can grab a window token from it
@@ -276,34 +280,7 @@ public class Tools {
         builder.show();
     }
 
-    public static class progressDialog {
-        ProgressDialog progressDialog;
-        public  void show(Activity activity){
-            progressDialog = new ProgressDialog(activity);
-
-//        progressDialog = new ProgressDialog(HomeActivity.this);
-            progressDialog.show();
-            progressDialog.setContentView(R.layout.loading_layout);
-            //Dialog Layout Width and height set
-            progressDialog.getWindow().setLayout(WindowManager.LayoutParams.WRAP_CONTENT,
-                    WindowManager.LayoutParams.WRAP_CONTENT);
-//       Set Transparent background ==========
-            progressDialog.getWindow().setBackgroundDrawableResource(
-                    android.R.color.transparent);
-            // Set out Side touch protector
-            progressDialog.setCanceledOnTouchOutside(false);
-            progressDialog.setCancelable(false);
-        }
-
-        public  void cancel() {
-            // Log.e("TAG", "Cancel: progress" );
-            progressDialog.cancel();
-            progressDialog.hide();
-//        progressDialog =null;
-        }
-    }
-
-    public static void showAlert(Activity act,String msg, String positiveBtnText) {
+    public static void showAlert(Activity act, String msg, String positiveBtnText) {
         MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(act);
         builder.setTitle(msg);
         builder.setCancelable(true);
@@ -311,12 +288,13 @@ public class Tools {
         builder.show();
     }
 
-    public static void showToast(Activity act,String msg) {
+    public static void showToast(Activity act, String msg) {
         Toast.makeText(act, msg, Toast.LENGTH_SHORT).show();
     }
 
-    public static void snackBarError(Activity act, View view, String msg) {
-        final Snackbar snackbar = Snackbar.make(view, msg, Snackbar.LENGTH_SHORT);
+    public static void snackBarError(Activity act, String msg) {
+        View view1 = act.findViewById(android.R.id.content);
+        final Snackbar snackbar = Snackbar.make(view1, msg, Snackbar.LENGTH_LONG);
         snackbar.setBackgroundTint(act.getResources().getColor(android.R.color.holo_red_dark));
         try {
             snackbar.show();
@@ -324,8 +302,9 @@ public class Tools {
         }
     }
 
-    public static void snackBarSuccess(Activity act, View view, String msg) {
-        final Snackbar snackbar = Snackbar.make(view, msg, Snackbar.LENGTH_SHORT);
+    public static void snackBarSuccess(Activity act, String msg) {
+        View view1 = act.findViewById(android.R.id.content);
+        final Snackbar snackbar = Snackbar.make(view1, msg, Snackbar.LENGTH_LONG);
         snackbar.setBackgroundTint(act.getResources().getColor(android.R.color.holo_green_light));
         try {
             snackbar.show();
@@ -333,7 +312,7 @@ public class Tools {
         }
     }
 
-    public static String getSalePercentage(String sale_price,String regular_price ) {
+    public static String getSalePercentage(String sale_price, String regular_price) {
         double saleprice = Double.parseDouble(sale_price);
         double regularprice = Double.parseDouble(regular_price);
         double off = 100 * (regularprice - saleprice) / regularprice;
@@ -341,13 +320,13 @@ public class Tools {
         return integerValue + "%";
     }
 
-    public static void directLinkCustomTab(Activity act,String url) {
+    public static void directLinkCustomTab(Activity act, String url) {
         if (!URLUtil.isValidUrl(url)) {
             Toast.makeText(act, "Ops, Cannot open url", Toast.LENGTH_LONG).show();
             return;
         }
-        int color = ResourcesCompat.getColor(act.getResources(), android.R.color.holo_blue_dark, null);
-        int secondaryColor = ResourcesCompat.getColor(act.getResources(), android.R.color.holo_blue_dark, null);
+        int color = ResourcesCompat.getColor(act.getResources(), android.R.color.holo_red_dark, null);
+        int secondaryColor = ResourcesCompat.getColor(act.getResources(), android.R.color.holo_red_dark, null);
 
         CustomTabsIntent.Builder intentBuilder = new CustomTabsIntent.Builder();
         CustomTabColorSchemeParams defaultColors = new CustomTabColorSchemeParams.Builder()
@@ -363,5 +342,90 @@ public class Tools {
         });
     }
 
+    public static void rateUs(Activity activity) {
+        activity.startActivity(new Intent(Intent.ACTION_VIEW,
+                Uri.parse("http://play.google.com/store/apps/details?id=" + activity.getPackageName())));
+    }
+
+    public static void shareContent(Activity activity, String content_url) {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        intent.putExtra(Intent.EXTRA_TEXT, content_url);
+        intent.setType("text/plain");
+        intent = Intent.createChooser(intent, "Share Via");
+        activity.startActivity(intent);
+    }
+
+    public static Animation animLeft(Context ctx) {
+        return AnimationUtils.loadAnimation(ctx, android.R.anim.slide_in_left);
+    }
+
+    public static Animation animShow(Context ctx) {
+        return AnimationUtils.loadAnimation(ctx, R.anim.anim_show);
+    }
+
+    public static Animation animHide(Context ctx) {
+        return AnimationUtils.loadAnimation(ctx, R.anim.anim_hide);
+    }
+
+    public static Animation animHideBottom(Context ctx) {
+        return AnimationUtils.loadAnimation(ctx, R.anim.anim_hide_bottom);
+    }
+
+    public static Animation animPopUp(Context ctx) {
+        ScaleAnimation anim = new ScaleAnimation(0.0f, 1.0f, 0.0f, 1.0f, Animation.RELATIVE_TO_SELF, 0.5f,
+                Animation.RELATIVE_TO_SELF, 0.5f);
+        anim.setDuration(500);
+        return anim;
+    }
+
+    public static void LogE(String msg) {
+        Log.e("Log: ", msg);
+    }
+
+    public static void LogD(String msg) {
+        Log.d("Log: ", msg);
+    }
+
+    public static String getDate() {
+        Date currentTime = Calendar.getInstance().getTime();
+        return new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(new Date());
+    }
+
+//    TODO: Get decimalNumber ##.## format
+    public static String getDecimal(int num) {
+        return new DecimalFormat("##.##").format(num);
+    }
+
+    //    TODO: Get number with comma #,##,### format
+    public static String getNumberWithComma(String num) {
+        Double numParsed = Double.parseDouble(num);
+        @SuppressLint("DefaultLocale")  String numString = String.format("%,.0f", numParsed);
+
+        return String.format(numString);
+    }
+    //    TODO: Get number with comma #,##,### format
+    public static String getNumberWithComma(Double num) {
+        @SuppressLint("DefaultLocale")   String numString = String.format("%,.0f", num);
+        return String.format(numString);
+    }
+    //    TODO: Get number with comma #,##,### format
+    public static String getNumberWithComma(int num) {
+        Double numParsed = Double.parseDouble(String.valueOf(num));
+        @SuppressLint("DefaultLocale")  String numString = String.format("%,.0f", numParsed);
+        return String.format(numString);
+    }
+    //    TODO: Get number with comma #,##,### format
+    public static String getNumberWithComma(long num) {
+        Double numParsed = Double.parseDouble(String.valueOf(num));
+        @SuppressLint("DefaultLocale") String numString = String.format("%,.0f", numParsed);
+        return String.format(numString);
+    }
+    //    TODO: Get number with comma #,##,###.00 format
+    public static String getNumberWithCommaWithPoint(String num) {
+        Double numParsed = Double.parseDouble(String.valueOf(num));
+        @SuppressLint("DefaultLocale") String numString = String.format("%,.2f", numParsed);
+        return String.format(numString);
+    }
 
 }
